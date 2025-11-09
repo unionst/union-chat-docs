@@ -146,9 +146,6 @@ struct FullFeaturedChatExample: View {
         .onChatSend { text, media in
             sendMessage()
         }
-        .chatKeyboardAccessory {
-            ScrollToBottomButton()
-        }
         .chatBackground {
             LinearGradient(
                 colors: [.blue.opacity(0.1), .purple.opacity(0.1)],
@@ -338,8 +335,27 @@ struct BubbleStylingExample: View {
     }
 }
 
+@available(iOS 17.0, macOS 14.0, *)
+struct ChatControlsExample: View {
+    @State private var messages: [ExampleMessage] = [
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Try scrolling up!"),
+        ExampleMessage(id: UUID(), role: .me, text: "Then use the button to scroll back")
+    ]
+    
+    var body: some View {
+        Chat(messages)
+            .chatControls {
+                ScrollToBottomButton()
+            }
+    }
+}
+
 #Preview("Bubble Styling") {
     BubbleStylingExample()
+}
+
+#Preview("Chat Controls") {
+    ChatControlsExample()
 }
 
 #Preview("Multi Role") {

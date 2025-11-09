@@ -364,10 +364,6 @@ extension View {
         self
     }
     
-    nonisolated public func chatKeyboardAccessory<Accessory: View>(@ViewBuilder _ accessory: () -> Accessory) -> some View {
-        self
-    }
-    
     nonisolated public func chatBackground<BG: View>(@ViewBuilder _ background: () -> BG) -> some View {
         self
     }
