@@ -146,7 +146,7 @@ struct FullFeaturedChatExample: View {
         .chatGrouping(.byDay)
         .chatMessageSpacing(8)
         .chatReadReceipts(showReadReceipts)
-        .chatAutoscroll(.whenAtBottom())
+        .chatAutoscroll(.whenAtBottom)
         .chatHeader {
             ChatHeader(
                 title: "Alice",

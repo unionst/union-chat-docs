@@ -225,10 +225,13 @@ public struct ChatPosition: Equatable, Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-public enum ChatAutoscroll: Sendable, Equatable {
-    case always(anchor: UnitPoint = .bottom, animated: Bool = true)
-    case never
-    case whenAtBottom(anchor: UnitPoint = .bottom, animated: Bool = true)
+public struct ChatAutoscroll: Sendable, Equatable {
+    public static var always: ChatAutoscroll { ChatAutoscroll() }
+    public static var never: ChatAutoscroll { ChatAutoscroll() }
+    public static var whenAtBottom: ChatAutoscroll { ChatAutoscroll() }
+    
+    public static func always(anchor: UnitPoint, animated: Bool = true) -> ChatAutoscroll { ChatAutoscroll() }
+    public static func whenAtBottom(anchor: UnitPoint, animated: Bool = true) -> ChatAutoscroll { ChatAutoscroll() }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
