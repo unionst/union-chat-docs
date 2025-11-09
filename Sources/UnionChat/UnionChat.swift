@@ -26,62 +26,68 @@ public enum DeliveryState: Hashable, Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-public protocol ChatMessageProtocol<ID>: Identifiable, Hashable, Sendable where ID: Hashable & Sendable {
+public enum MessageMedia: Hashable, Sendable {
+    case image(url: URL)
+    case video(url: URL, thumbnailURL: URL? = nil, duration: TimeInterval? = nil)
+    case audio(url: URL, duration: TimeInterval? = nil, waveform: [Float]? = nil)
+    case file(url: URL, name: String, size: Int64? = nil, mimeType: String? = nil)
+    case location(latitude: Double, longitude: Double, name: String? = nil)
+    case poll(question: String, options: [String], votes: [Int]? = nil)
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+public struct MessageReaction: Hashable, Sendable {
+    public let emoji: String
+    public let userIDs: Set<AnyHashable>
+    public let includesMe: Bool
+    
+    public var count: Int { userIDs.count }
+    
+    nonisolated public init(emoji: String, userIDs: Set<AnyHashable>, includesMe: Bool = false) {
+        self.emoji = emoji
+        self.userIDs = userIDs
+        self.includesMe = includesMe
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+public enum ReactionAction: Sendable {
+    case adding
+    case removing
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+public struct ChatInputCapability: OptionSet, Sendable {
+    public let rawValue: Int
+    
+    nonisolated public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    public static let camera = ChatInputCapability(rawValue: 1 << 0)
+    public static let photoLibrary = ChatInputCapability(rawValue: 1 << 1)
+    public static let recordAudio = ChatInputCapability(rawValue: 1 << 2)
+    public static let files = ChatInputCapability(rawValue: 1 << 3)
+    public static let location = ChatInputCapability(rawValue: 1 << 4)
+    public static let polls = ChatInputCapability(rawValue: 1 << 5)
+    
+    public static let all: ChatInputCapability = [.camera, .photoLibrary, .recordAudio, .files, .location, .polls]
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+public protocol ChatMessage<ID>: Identifiable, Hashable, Sendable where ID: Hashable & Sendable {
     associatedtype ID
     var id: ID { get }
     var role: ChatRole { get }
     var timestamp: Date { get }
-    var kind: MessageKind { get }
-    var state: DeliveryState { get }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-public struct ChatMessage<ID: Hashable & Sendable>: ChatMessageProtocol {
-    public let id: ID
-    public var role: ChatRole
-    public var timestamp: Date
-    public var kind: MessageKind
-    public var state: DeliveryState
-    public var text: String
-    public var metadata: [String:String]
-    
-    nonisolated public init(
-        id: ID,
-        role: ChatRole,
-        timestamp: Date = .now,
-        kind: MessageKind = .text,
-        state: DeliveryState = .sent,
-        text: String,
-        metadata: [String:String] = [:]
-    ) {
-        self.id = id
-        self.role = role
-        self.timestamp = timestamp
-        self.kind = kind
-        self.state = state
-        self.text = text
-        self.metadata = metadata
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension ChatMessage: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@Observable
-public final class ChatStore<M: ChatMessageProtocol>: @unchecked Sendable {
-    public var messages: [M]
-    public var typingUsers: [String]
-    
-    public init(_ messages: [M]) {
-        self.messages = messages
-        self.typingUsers = []
-    }
-    
-    @MainActor public func append(_ m: M) { }
-    @MainActor public func upsert(_ m: M) { }
-    @MainActor public func updateState(id: M.ID, to state: DeliveryState) { }
+extension ChatMessage {
+    public var kind: MessageKind { .text }
+    public var state: DeliveryState { .sent }
+    public var reactions: [MessageReaction] { [] }
+    public var replyToMessageID: AnyHashable? { nil }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -173,46 +179,11 @@ public struct AnyChatContent: ChatContent {
 extension AnyChatContent: Sendable {
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-public struct AlignScale: Hashable, Sendable {
-    public var map: [ChatRole: HorizontalAlignment]
-    
-    nonisolated public init(_ map: [ChatRole: HorizontalAlignment]) {
-        self.map = map
-    }
-    
-    public static var automatic: AlignScale {
-        AlignScale([:])
-    }
-}
 
 @available(iOS 17.0, macOS 14.0, *)
-public struct ForegroundStyleScale: Hashable, Sendable {
-    nonisolated public init(_ map: [ChatRole: any ShapeStyle]) { }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-public enum BubbleShapeToken: Hashable, Sendable {
-    case capsule
-    case rounded(CGFloat)
-    case tail(TailPosition)
-    case automatic
-    
-    public enum TailPosition: Hashable, Sendable {
-        case bottomLeft
-        case bottomRight
-        case none
-        case automatic
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-public struct BubbleShapeScale: Hashable, Sendable {
-    public var map: [MessageKind: BubbleShapeToken]
-    
-    nonisolated public init(_ map: [MessageKind: BubbleShapeToken]) {
-        self.map = map
-    }
+public struct ChatBubbleEffect: Hashable, Sendable {
+    public static var gradient: ChatBubbleEffect { ChatBubbleEffect() }
+    public static var solid: ChatBubbleEffect { ChatBubbleEffect() }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -230,25 +201,6 @@ public struct ChatBubbleShape: Shape {
     }
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-public protocol ChatSelectable: Hashable {
-    init(_ messageID: AnyHashable?)
-    var messageID: AnyHashable? { get }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-public struct ChatSelection<SelectionValue: Hashable>: ChatSelectable {
-    public var value: SelectionValue? {
-        fatalError()
-    }
-    
-    public var messageID: AnyHashable? {
-        fatalError()
-    }
-    
-    nonisolated public init(_ value: SelectionValue) { }
-    nonisolated public init(_ messageID: AnyHashable?) { }
-}
 
 @available(iOS 17.0, macOS 14.0, *)
 public struct ChatPosition: Equatable, Sendable {
@@ -292,17 +244,13 @@ public struct ChatInteractionModes: OptionSet, Sendable {
         self.rawValue = rawValue
     }
     
-    public static let tap = ChatInteractionModes(rawValue: 1 << 0)
-    public static let longPress = ChatInteractionModes(rawValue: 1 << 1)
-    public static let dragToReply = ChatInteractionModes(rawValue: 1 << 2)
-    public static let copy = ChatInteractionModes(rawValue: 1 << 3)
-    public static let edit = ChatInteractionModes(rawValue: 1 << 4)
-    public static let delete = ChatInteractionModes(rawValue: 1 << 5)
-    public static let react = ChatInteractionModes(rawValue: 1 << 6)
-    public static let forward = ChatInteractionModes(rawValue: 1 << 7)
-    public static let select = ChatInteractionModes(rawValue: 1 << 8)
+    public static let reply = ChatInteractionModes(rawValue: 1 << 0)
+    public static let edit = ChatInteractionModes(rawValue: 1 << 1)
+    public static let delete = ChatInteractionModes(rawValue: 1 << 2)
+    public static let react = ChatInteractionModes(rawValue: 1 << 3)
+    public static let forward = ChatInteractionModes(rawValue: 1 << 4)
     
-    public static let all: ChatInteractionModes = [.tap, .longPress, .dragToReply, .copy, .edit, .delete, .react, .forward, .select]
+    public static let all: ChatInteractionModes = [.reply, .edit, .delete, .react, .forward]
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -311,35 +259,9 @@ public enum ChatGrouping: Sendable, Equatable {
     case byDay
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-public struct ChatTheme: Hashable, Sendable {
-    public var bubbleMaxWidthRatio: CGFloat
-    public var insets: NSDirectionalEdgeInsets
-    
-    nonisolated public init(bubbleMaxWidthRatio: CGFloat, insets: NSDirectionalEdgeInsets) {
-        self.bubbleMaxWidthRatio = bubbleMaxWidthRatio
-        self.insets = insets
-    }
-    
-    public static func glass(_ glass: UniversalGlass) -> ChatTheme {
-        ChatTheme(bubbleMaxWidthRatio: 0.75, insets: .init(top: 0, leading: 0, bottom: 0, trailing: 0))
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-public enum UniversalGlass {
-    case regular
-    case clear
-    case identity
-}
 
 @available(iOS 17.0, macOS 14.0, *)
 extension EnvironmentValues {
-    public var chatAlignScale: AlignScale {
-        get { .automatic }
-        set { }
-    }
-    
     public var chatForegroundStyleScale: ForegroundStyleScale {
         get { fatalError() }
         set { }
@@ -375,32 +297,67 @@ extension EnvironmentValues {
         set { }
     }
     
-    public var chatTheme: ChatTheme {
-        get { fatalError() }
+    public var messageStyle: AnyMessageStyle {
+        get { AnyMessageStyle(BubbleMessageStyle()) }
         set { }
     }
     
-    public var messageStyle: AnyMessageStyle {
-        get { AnyMessageStyle(BubbleMessageStyle()) }
+    public var avatarVisibility: Visibility {
+        get { .automatic }
         set { }
     }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 extension View {
-    nonisolated public func alignScale(_ mapping: [ChatRole: HorizontalAlignment]) -> some View {
+    nonisolated public func chatInputPlaceholder(_ placeholder: String) -> some View {
         self
     }
     
+    nonisolated public func chatInputCapabilities(_ capabilities: ChatInputCapability) -> some View {
+        self
+    }
+    
+    nonisolated public func onChatSend(perform action: @escaping (_ text: String?, _ media: MessageMedia?) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func onReaction(perform action: @escaping (_ messageID: AnyHashable, _ emoji: String, _ action: ReactionAction) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func onReply(perform action: @escaping (_ messageID: AnyHashable) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func onEdit(perform action: @escaping (_ messageID: AnyHashable, _ newText: String) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func onDelete(perform action: @escaping (_ messageID: AnyHashable) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func onForward(perform action: @escaping (_ messageID: AnyHashable) async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func chatInputVisibility(_ visibility: Visibility) -> some View {
+        self
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+extension View {
     nonisolated public func chatForegroundStyleScale<S>(_ mapping: [ChatRole: S]) -> some View where S: ShapeStyle {
         self
     }
     
-    nonisolated public func bubbleShapeScale(_ mapping: [MessageKind: BubbleShapeToken]) -> some View {
+    nonisolated public func chatBubbleShapeScale(_ mapping: [MessageKind: BubbleShapeToken]) -> some View {
         self
     }
     
-    nonisolated public func autoscroll(_ behavior: ChatAutoscroll) -> some View {
+    nonisolated public func chatAutoscroll(_ behavior: ChatAutoscroll) -> some View {
         self
     }
     
@@ -408,31 +365,23 @@ extension View {
         self
     }
     
-    nonisolated public func grouping(_ strategy: ChatGrouping) -> some View {
+    nonisolated public func chatGrouping(_ strategy: ChatGrouping) -> some View {
         self
     }
     
-    nonisolated public func messageSpacing(_ spacing: CGFloat) -> some View {
+    nonisolated public func chatMessageSpacing(_ spacing: CGFloat) -> some View {
         self
     }
     
-    nonisolated public func readReceipts(_ enabled: Bool) -> some View {
+    nonisolated public func chatReadReceipts(_ enabled: Bool) -> some View {
         self
     }
     
-    nonisolated public func theme(_ theme: ChatTheme) -> some View {
+    nonisolated public func chatHeader<Header: View>(@ViewBuilder _ header: () -> Header) -> some View {
         self
     }
     
-    nonisolated public func header<Header: View>(@ViewBuilder _ header: () -> Header) -> some View {
-        self
-    }
-    
-    nonisolated public func composer<Composer: View>(@ViewBuilder _ composer: () -> Composer) -> some View {
-        self
-    }
-    
-    nonisolated public func keyboardAccessory<Accessory: View>(@ViewBuilder _ accessory: () -> Accessory) -> some View {
+    nonisolated public func chatKeyboardAccessory<Accessory: View>(@ViewBuilder _ accessory: () -> Accessory) -> some View {
         self
     }
     
@@ -444,19 +393,23 @@ extension View {
         self
     }
     
-    nonisolated public func scrollPosition(_ position: Binding<ChatPosition>) -> some View {
-        self
-    }
-    
-    nonisolated public func chatSelection<V>(value: Binding<V?>) -> some View where V: Hashable {
-        self
-    }
-    
-    nonisolated public func chatSelection<V>(values: Binding<Set<V>>) -> some View where V: Hashable {
+    nonisolated public func chatScrollPosition(_ position: Binding<ChatPosition>) -> some View {
         self
     }
     
     nonisolated public func chatGesture(_ gesture: @escaping (ChatProxy) -> some Gesture) -> some View {
+        self
+    }
+    
+    nonisolated public func chatAvatarVisibility(_ visibility: Visibility) -> some View {
+        self
+    }
+    
+    nonisolated public func onChatEdge(_ edge: Edge = .top, perform action: @escaping () async -> Void) -> some View {
+        self
+    }
+    
+    nonisolated public func chatDeliveryReceipts(_ enabled: Bool = true) -> some View {
         self
     }
 }
@@ -510,14 +463,10 @@ extension ChatContent {
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct Chat<Selection: ChatSelectable, Content: ChatContent>: View {
-    nonisolated public init(@ChatContentBuilder _ content: () -> Content) where Selection == ChatSelection<Never> { }
+public struct Chat<Content: ChatContent>: View {
+    nonisolated public init(@ChatContentBuilder _ content: () -> Content) { }
     
-    nonisolated public init(position: Binding<ChatPosition>, @ChatContentBuilder _ content: () -> Content) where Selection == ChatSelection<Never> { }
-    
-    nonisolated public init<S>(selection: Binding<S?>, @ChatContentBuilder _ content: () -> Content) where Selection == ChatSelection<S>, S: Hashable { }
-    
-    nonisolated public init<S>(position: Binding<ChatPosition>, selection: Binding<S?>, @ChatContentBuilder _ content: () -> Content) where Selection == ChatSelection<S>, S: Hashable { }
+    nonisolated public init(position: Binding<ChatPosition>, @ChatContentBuilder _ content: () -> Content) { }
     
     @MainActor @preconcurrency public var body: some View {
         EmptyView()
@@ -529,13 +478,13 @@ extension Chat: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension Chat where Selection == ChatSelection<Never> {
+extension Chat {
     nonisolated public init<Data: RandomAccessCollection>(
         _ data: Data,
         @ChatContentBuilder content: @escaping (Data.Element) -> some ChatContent
     ) { }
     
-    nonisolated public init<M: ChatMessageProtocol>(
+    nonisolated public init<M: ChatMessage>(
         _ data: some RandomAccessCollection<M>,
         @ChatContentBuilder content: @escaping (M) -> some ChatContent
     ) { }
@@ -550,15 +499,15 @@ extension Chat where Selection == ChatSelection<Never> {
         @ChatContentBuilder content: @escaping (Data.Element) -> some ChatContent
     ) { }
     
-    nonisolated public init<M: ChatMessageProtocol>(_ messages: [M]) { }
+    nonisolated public init<M: ChatMessage>(_ messages: [M]) { }
     
-    nonisolated public init<M: ChatMessageProtocol>(_ messages: some RandomAccessCollection<M>) { }
+    nonisolated public init<M: ChatMessage>(_ messages: some RandomAccessCollection<M>) { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct MessageMark<Label, Content>: ChatContent where Label: View, Content: View {
-    nonisolated public init(id: AnyHashable, role: ChatRole, time: Date, state: DeliveryState = .sent, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { }
+public struct Message<Label, Content>: ChatContent where Label: View, Content: View {
+    nonisolated public init(id: AnyHashable, role: ChatRole, time: Date, state: DeliveryState = .sent, @ViewBuilder content: () -> Content, @ViewBuilder avatar: () -> Label) { }
     
     nonisolated public init(id: AnyHashable, role: ChatRole, time: Date, state: DeliveryState = .sent, @ViewBuilder content: () -> Content) where Label == EmptyView { }
     
@@ -566,39 +515,45 @@ public struct MessageMark<Label, Content>: ChatContent where Label: View, Conten
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark where Content == Text, Label == EmptyView {
+extension Message where Content == Text, Label == EmptyView {
     nonisolated public init(_ titleKey: LocalizedStringKey, id: AnyHashable, role: ChatRole, time: Date, state: DeliveryState = .sent) { }
     
     nonisolated public init<S>(_ title: S, id: AnyHashable, role: ChatRole, time: Date, state: DeliveryState = .sent) where S: StringProtocol { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark where Label == EmptyView {
-    nonisolated public init<M>(_ message: M, @ViewBuilder content: () -> Content) where M: ChatMessageProtocol { }
+extension Message where Label == EmptyView {
+    nonisolated public init<M>(_ message: M, @ViewBuilder content: () -> Content) where M: ChatMessage { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark where Content == Text, Label == EmptyView {
-    nonisolated public init<M>(_ message: M) where M: ChatMessageProtocol { }
+extension Message where Label == EmptyView {
+    nonisolated public init<M>(_ message: M) where M: ChatMessage, Content == _AutomaticMessageContent { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark {
-    nonisolated public init<M>(_ message: M, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) where M: ChatMessageProtocol { }
+@MainActor @preconcurrency
+public struct _AutomaticMessageContent: View {
+    @MainActor @preconcurrency public var body: some View { EmptyView() }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark where Label == AvatarView {
-    nonisolated public init<M>(_ message: M, avatar: Avatar?, @ViewBuilder content: () -> Content) where M: ChatMessageProtocol { }
+extension Message {
+    nonisolated public init<M>(_ message: M, @ViewBuilder content: () -> Content, @ViewBuilder avatar: () -> Label) where M: ChatMessage { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark where Content == Text, Label == AvatarView {
-    nonisolated public init<M>(_ message: M, avatar: Avatar?) where M: ChatMessageProtocol { }
+extension Message where Label == AvatarView {
+    nonisolated public init<M>(_ message: M, avatar: Avatar?, @ViewBuilder content: () -> Content) where M: ChatMessage { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension MessageMark: Sendable {
+extension Message where Content == Text, Label == AvatarView {
+    nonisolated public init<M>(_ message: M, avatar: Avatar?) where M: ChatMessage { }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+extension Message: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -670,89 +625,84 @@ public struct AnyMessageStyle: MessageStyle {
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct TypingMark: ChatContent {
+public struct Typing: ChatContent {
     nonisolated public init(users: [String]) { }
     public typealias Body = Never
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension TypingMark: Sendable {
+extension Typing: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct DividerMark: ChatContent {
+public struct Loading: ChatContent {
+    nonisolated public init() { }
+    public typealias Body = Never
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+extension Loading: Sendable {
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+@MainActor @preconcurrency
+public struct Divider: ChatContent {
     nonisolated public init(date: Date) { }
     public typealias Body = Never
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension DividerMark: Sendable {
+extension Divider: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct EventMark<Content>: ChatContent where Content: View {
+public struct Event<Content>: ChatContent where Content: View {
     nonisolated public init(time: Date, @ViewBuilder content: () -> Content) { }
     public typealias Body = Never
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension EventMark: Sendable {
+extension Event: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct ReceiptMark: ChatContent {
+public struct Receipt<Content: View>: ChatContent {
     public enum Position {
         case leading
         case trailing
         case overlay
     }
     
+    nonisolated public init(for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState, @ViewBuilder content: () -> Content) { }
+    
+    public typealias Body = Never
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+extension Receipt where Content == Text {
     nonisolated public init(for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) { }
-    public typealias Body = Never
+    
+    nonisolated public init(_ text: LocalizedStringKey, for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) { }
+    
+    nonisolated public init<S>(_ text: S, for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) where S: StringProtocol { }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension ReceiptMark: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor @preconcurrency
-public struct ReactionMark: ChatContent {
-    nonisolated public init(for messageID: AnyHashable, reactions: [(emoji: String, users: [String])]) { }
-    public typealias Body = Never
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension ReactionMark: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-public enum AttachmentType: Hashable, Sendable {
-    case image
-    case video
-    case audio
-    case document
-    case location
+extension Receipt: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct AttachmentMark<Content>: ChatContent where Content: View {
-    nonisolated public init(
-        id: AnyHashable,
-        role: ChatRole,
-        time: Date,
-        attachmentType: AttachmentType,
-        @ViewBuilder content: () -> Content
-    ) { }
+public struct Reaction: ChatContent {
+    nonisolated public init(for messageID: AnyHashable, reactions: [MessageReaction]) { }
     public typealias Body = Never
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension AttachmentMark: Sendable {
+extension Reaction: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -887,27 +837,6 @@ public struct ChatHeader: View {
 extension ChatHeader: Sendable {
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor
-public struct InputBar: View {
-    @Binding public var text: String
-    public let placeholder: String
-    public let onSend: () -> Void
-    
-    nonisolated public init(text: Binding<String>, placeholder: String = "Message", onSend: @escaping () -> Void) {
-        self._text = text
-        self.placeholder = placeholder
-        self.onSend = onSend
-    }
-    
-    @MainActor public var body: some View {
-        EmptyView()
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension InputBar: Sendable {
-}
 
 @available(iOS 17.0, macOS 14.0, *)
 extension ForEach: ChatContent where Content: ChatContent {
