@@ -180,11 +180,6 @@ extension AnyChatContent: Sendable {
 }
 
 
-@available(iOS 17.0, macOS 14.0, *)
-public struct ChatBubbleEffect: Hashable, Sendable {
-    public static var gradient: ChatBubbleEffect { ChatBubbleEffect() }
-    public static var solid: ChatBubbleEffect { ChatBubbleEffect() }
-}
 
 @available(iOS 17.0, macOS 14.0, *)
 public struct ChatBubbleShape: Shape {
@@ -262,16 +257,6 @@ public enum ChatGrouping: Sendable, Equatable {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension EnvironmentValues {
-    public var chatForegroundStyleScale: ForegroundStyleScale {
-        get { fatalError() }
-        set { }
-    }
-    
-    public var chatBubbleShapeScale: BubbleShapeScale {
-        get { fatalError() }
-        set { }
-    }
-    
     public var chatAutoscroll: ChatAutoscroll {
         get { fatalError() }
         set { }
@@ -349,11 +334,15 @@ extension View {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension View {
-    nonisolated public func chatForegroundStyleScale<S>(_ mapping: [ChatRole: S]) -> some View where S: ShapeStyle {
+    nonisolated public func chatSentMessageStyle<S>(_ style: S) -> some View where S: ShapeStyle {
         self
     }
     
-    nonisolated public func chatBubbleShapeScale(_ mapping: [MessageKind: BubbleShapeToken]) -> some View {
+    nonisolated public func chatReceivedMessageStyle<S>(_ style: S) -> some View where S: ShapeStyle {
+        self
+    }
+    
+    nonisolated public func chatMessageStyle<S>(_ style: S, for role: ChatRole) -> some View where S: ShapeStyle {
         self
     }
     

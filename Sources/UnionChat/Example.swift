@@ -142,15 +142,7 @@ struct FullFeaturedChatExample: View {
                 Typing(users: ["Alice"])
             }
         }
-        .chatForegroundStyleScale([
-            .me: .tint,
-            .system: Color.secondary,
-            .user("alice"): Color.primary
-        ])
-        .chatBubbleShapeScale([
-            .text: .tail(.bottomRight),
-            .event: .rounded(12)
-        ])
+        .tint(.blue)
         .chatGrouping(.byDay)
         .chatMessageSpacing(8)
         .chatReadReceipts(showReadReceipts)
@@ -338,13 +330,10 @@ struct MultiRoleExample: View {
                 }
             }
         }
-        .chatForegroundStyleScale([
-            .me: .tint,
-            .system: Color.secondary,
-            .user("alice"): Color.purple,
-            .user("bob"): Color.green,
-            .user("charlie"): Color.orange
-        ])
+        .tint(.blue)
+        .chatMessageStyle(.purple.gradient, for: .user("alice"))
+        .chatMessageStyle(.green.gradient, for: .user("bob"))
+        .chatMessageStyle(.orange.gradient, for: .user("charlie"))
     }
 }
 
@@ -358,6 +347,45 @@ struct MultiRoleExample: View {
 
 #Preview("Reader Proxy") {
     ChatReaderExample()
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+struct BubbleStylingExample: View {
+    @State private var messages: [ExampleMessage] = [
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Default gray gradient"),
+        ExampleMessage(id: UUID(), role: .me, text: "Default uses app tint with gradient")
+    ]
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Default (with gradient)").font(.caption)
+            Chat(messages)
+                .tint(.blue)
+                .frame(height: 200)
+            
+            Divider()
+            
+            Text("Custom solid colors").font(.caption)
+            Chat(messages)
+                .chatSentMessageStyle(.purple)
+                .chatReceivedMessageStyle(.gray)
+                .frame(height: 200)
+            
+            Divider()
+            
+            Text("Custom gradients").font(.caption)
+            Chat(messages)
+                .chatSentMessageStyle(
+                    LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
+                .chatReceivedMessageStyle(.gray.gradient)
+                .frame(height: 200)
+        }
+    }
+}
+
+#Preview("Bubble Styling") {
+    BubbleStylingExample()
 }
 
 #Preview("Multi Role") {
