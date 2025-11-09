@@ -43,7 +43,6 @@ struct FullFeaturedChatExample: View {
     @State private var text = ""
     @State private var position = ChatPosition.automatic
     @State private var isTyping = true
-    @State private var showReadReceipts = true
     
     private let messages: [ExampleMessage] = [
         .init(
@@ -115,24 +114,11 @@ struct FullFeaturedChatExample: View {
                             .background(.ultraThickMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                     } avatar: {
-                        HStack(spacing: 4) {
-                            Text(message.timestamp, style: .time)
-                            if showReadReceipts && message.role == .me {
-                                deliveryStateIcon(for: message.state)
-                            }
-                        }
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        Text(message.timestamp, style: .time)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
                     .tag(message.id)
-                    
-                    if showReadReceipts && message.role == .me {
-                        Receipt(
-                            for: message.id,
-                            position: .trailing,
-                            state: message.state
-                        )
-                    }
                 }
             }
             
@@ -145,7 +131,6 @@ struct FullFeaturedChatExample: View {
         .tint(.blue)
         .chatGrouping(.byDay)
         .chatMessageSpacing(8)
-        .chatReadReceipts(showReadReceipts)
         .chatAutoscroll(.whenAtBottom)
         .chatHeader {
             ChatHeader(
@@ -172,18 +157,7 @@ struct FullFeaturedChatExample: View {
             )
         }
         .chatControls {
-            VStack {
-                ScrollToBottomButton()
-                Button {
-                    showReadReceipts.toggle()
-                } avatar: {
-                    Image(systemName: showReadReceipts ? "checkmark.circle.fill" : "checkmark.circle")
-                        .font(.title2)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .clipShape(Circle())
-                }
-            }
+            ScrollToBottomButton()
         }
         .chatScrollPosition($position)
     }
@@ -192,26 +166,6 @@ struct FullFeaturedChatExample: View {
         guard !text.isEmpty else { return }
         print("Sending: \(text)")
         text = ""
-    }
-    
-    @ViewBuilder
-    private func deliveryStateIcon(for state: DeliveryState) -> some View {
-        switch state {
-        case .composing:
-            Image(systemName: "pencil")
-        case .sending:
-            Image(systemName: "arrow.up.circle")
-        case .sent:
-            Image(systemName: "checkmark")
-        case .delivered:
-            Image(systemName: "checkmark.circle")
-        case .read:
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.blue)
-        case .failed:
-            Image(systemName: "exclamationmark.triangle")
-                .foregroundStyle(.red)
-        }
     }
 }
 
@@ -953,59 +907,8 @@ struct PaginationExample: View {
     AutoAvatarExample()
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-struct DeliveryReceiptsExample: View {
-    @State private var messages: [ExampleMessage] = [
-        .init(id: UUID(), role: .me, state: .sent, text: "First message"),
-        .init(id: UUID(), role: .user("alice"), text: "Got it!"),
-        .init(id: UUID(), role: .me, state: .delivered, text: "Second message"),
-        .init(id: UUID(), role: .me, state: .read, text: "Third message")
-    ]
-    
-    var body: some View {
-        Chat {
-            ForEach(messages) { message in
-                Message(message)
-                
-                if message.role == .me && message.state != .sending {
-                    Receipt(for: message.id, state: message.state)
-                }
-            }
-        }
-        .chatDeliveryReceipts(true)
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-struct CustomReceiptExample: View {
-    @State private var messages: [ExampleMessage] = [
-        .init(id: UUID(), role: .me, state: .delivered, text: "Custom receipt text"),
-        .init(id: UUID(), role: .me, state: .read, text: "Another one")
-    ]
-    
-    var body: some View {
-        Chat {
-            ForEach(messages) { message in
-                Message(message)
-                
-                if message.role == .me {
-                    Receipt("✓ Seen", for: message.id, state: message.state)
-                }
-            }
-        }
-    }
-}
-
 #Preview("Pagination") {
     PaginationExample()
-}
-
-#Preview("Delivery Receipts") {
-    DeliveryReceiptsExample()
-}
-
-#Preview("Custom Receipts") {
-    CustomReceiptExample()
 }
 
 @available(iOS 17.0, macOS 14.0, *)

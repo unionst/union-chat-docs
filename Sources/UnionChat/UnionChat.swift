@@ -280,11 +280,6 @@ extension EnvironmentValues {
         set { }
     }
     
-    public var chatReadReceipts: Bool {
-        get { fatalError() }
-        set { }
-    }
-    
     public var messageStyle: AnyMessageStyle {
         get { AnyMessageStyle(BubbleMessageStyle()) }
         set { }
@@ -365,10 +360,6 @@ extension View {
         self
     }
     
-    nonisolated public func chatReadReceipts(_ enabled: Bool) -> some View {
-        self
-    }
-    
     nonisolated public func chatHeader<Header: View>(@ViewBuilder _ header: () -> Header) -> some View {
         self
     }
@@ -398,10 +389,6 @@ extension View {
     }
     
     nonisolated public func onChatEdge(_ edge: Edge = .top, perform action: @escaping () async -> Void) -> some View {
-        self
-    }
-    
-    nonisolated public func chatDeliveryReceipts(_ enabled: Bool = true) -> some View {
         self
     }
 }
@@ -657,33 +644,6 @@ public struct Event<Content>: ChatContent where Content: View {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension Event: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor @preconcurrency
-public struct Receipt<Content: View>: ChatContent {
-    public enum Position {
-        case leading
-        case trailing
-        case overlay
-    }
-    
-    nonisolated public init(for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState, @ViewBuilder content: () -> Content) { }
-    
-    public typealias Body = Never
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension Receipt where Content == Text {
-    nonisolated public init(for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) { }
-    
-    nonisolated public init(_ text: LocalizedStringKey, for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) { }
-    
-    nonisolated public init<S>(_ text: S, for messageID: AnyHashable, position: Position = .trailing, state: DeliveryState) where S: StringProtocol { }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension Receipt: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
