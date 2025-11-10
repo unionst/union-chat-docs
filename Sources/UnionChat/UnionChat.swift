@@ -639,17 +639,6 @@ extension Label: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-@MainActor @preconcurrency
-public struct Reaction: ChatContent {
-    nonisolated public init(for messageID: AnyHashable, reactions: [MessageReaction]) { }
-    public typealias Body = Never
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension Reaction: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
 public struct ChatProxy {
     public func rect(for messageID: AnyHashable) -> CGRect? {
         nil
