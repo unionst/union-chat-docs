@@ -9,13 +9,6 @@ public enum ChatRole: Hashable, Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-public enum MessageKind: Hashable, Sendable {
-    case text
-    case event
-    case typing
-}
-
-@available(iOS 17.0, macOS 14.0, *)
 public enum DeliveryState: Hashable, Sendable {
     case composing
     case sending
@@ -38,15 +31,11 @@ public enum MessageMedia: Hashable, Sendable {
 @available(iOS 17.0, macOS 14.0, *)
 public struct MessageReaction: Hashable, Sendable {
     public let emoji: String
-    public let userIDs: Set<AnyHashable>
-    public let includesMe: Bool
+    public let userID: String
     
-    public var count: Int { userIDs.count }
-    
-    nonisolated public init(emoji: String, userIDs: Set<AnyHashable>, includesMe: Bool = false) {
+    nonisolated public init(emoji: String, userID: String) {
         self.emoji = emoji
-        self.userIDs = userIDs
-        self.includesMe = includesMe
+        self.userID = userID
     }
 }
 
@@ -84,7 +73,6 @@ public protocol ChatMessage<ID>: Identifiable, Hashable, Sendable where ID: Hash
 
 @available(iOS 17.0, macOS 14.0, *)
 extension ChatMessage {
-    public var kind: MessageKind { .text }
     public var state: DeliveryState { .sent }
     public var reactions: [MessageReaction] { [] }
     public var replyToMessageID: AnyHashable? { nil }
@@ -439,9 +427,9 @@ extension Chat: Sendable {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension Chat {
-    nonisolated public init<M: ChatMessage>(
-        _ messages: some RandomAccessCollection<M>,
-        @ChatContentBuilder content: @escaping (M) -> some ChatContent
+    nonisolated public init<Data: RandomAccessCollection>(
+        _ data: Data,
+        @ChatContentBuilder content: @escaping (Data.Element) -> some ChatContent
     ) { }
     
     nonisolated public init<M: ChatMessage>(_ messages: some RandomAccessCollection<M>) { }

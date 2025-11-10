@@ -514,9 +514,10 @@ struct ReactionsExample: View {
             role: .user("alice"),
             text: "I love this feature!",
             reactions: [
-                MessageReaction(emoji: "❤️", userIDs: ["me", "bob"], includesMe: true),
-                MessageReaction(emoji: "🔥", userIDs: ["me"], includesMe: true),
-                MessageReaction(emoji: "👍", userIDs: ["charlie"], includesMe: false)
+                MessageReaction(emoji: "❤️", userID: "me"),
+                MessageReaction(emoji: "❤️", userID: "bob"),
+                MessageReaction(emoji: "🔥", userID: "me"),
+                MessageReaction(emoji: "👍", userID: "charlie")
             ]
         )
         
@@ -525,7 +526,7 @@ struct ReactionsExample: View {
             role: .me,
             text: "Thanks! 🙌",
             reactions: [
-                MessageReaction(emoji: "😊", userIDs: ["alice"], includesMe: false)
+                MessageReaction(emoji: "😊", userID: "alice")
             ]
         )
         
@@ -540,35 +541,14 @@ struct ReactionsExample: View {
                 
                 switch action {
                 case .adding:
-                    let existingReactionIndex = messages[index].reactions.firstIndex(where: { $0.emoji == emoji })
-                    if let existingIndex = existingReactionIndex {
-                        var updated = messages[index].reactions[existingIndex]
-                        var newUserIDs = updated.userIDs
-                        newUserIDs.insert("me")
-                        messages[index].reactions[existingIndex] = MessageReaction(
-                            emoji: emoji,
-                            userIDs: newUserIDs,
-                            includesMe: true
-                        )
-                    } else {
-                        messages[index].reactions.append(
-                            MessageReaction(emoji: emoji, userIDs: ["me"], includesMe: true)
-                        )
-                    }
+                    messages[index].reactions.append(
+                        MessageReaction(emoji: emoji, userID: "me")
+                    )
                 case .removing:
-                    if let reactionIndex = messages[index].reactions.firstIndex(where: { $0.emoji == emoji }) {
-                        var updated = messages[index].reactions[reactionIndex]
-                        var newUserIDs = updated.userIDs
-                        newUserIDs.remove("me")
-                        if newUserIDs.isEmpty {
-                            messages[index].reactions.remove(at: reactionIndex)
-                        } else {
-                            messages[index].reactions[reactionIndex] = MessageReaction(
-                                emoji: emoji,
-                                userIDs: newUserIDs,
-                                includesMe: false
-                            )
-                        }
+                    if let reactionIndex = messages[index].reactions.firstIndex(where: { 
+                        $0.emoji == emoji && $0.userID == "me" 
+                    }) {
+                        messages[index].reactions.remove(at: reactionIndex)
                     }
                 }
             }
@@ -619,8 +599,9 @@ struct SimpleReactionsExample: View {
             role: .user("alice"),
             text: "This is amazing!",
             reactions: [
-                MessageReaction(emoji: "❤️", userIDs: ["me"], includesMe: true),
-                MessageReaction(emoji: "👍", userIDs: ["bob", "charlie"])
+                MessageReaction(emoji: "❤️", userID: "me"),
+                MessageReaction(emoji: "👍", userID: "bob"),
+                MessageReaction(emoji: "👍", userID: "charlie")
             ]
         ),
         ExampleMessage(
