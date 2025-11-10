@@ -116,7 +116,7 @@ struct FullFeaturedChatExample: View {
             Divider(date: Date().addingTimeInterval(-900))
         }
         .chatStyle(.bubble)
-        .chatTypingUsers(isTyping ? ["Alice"] : [])
+        .chatTypingUsers(isTyping ? [.user("alice")] : [])
         .tint(.blue)
         .chatMessageSpacing(8)
         .chatAutoscroll(.whenAtBottom)
@@ -419,7 +419,7 @@ struct TypingIndicatorExample: View {
         ExampleMessage(id: UUID(), role: .user("alice"), text: "Hey!"),
         ExampleMessage(id: UUID(), role: .me, text: "What's up?")
     ]
-    @State private var typingUsers: Set<String> = ["alice"]
+    @State private var typingUsers: Set<ChatRole> = []
     
     var body: some View {
         VStack {
@@ -427,12 +427,12 @@ struct TypingIndicatorExample: View {
                 .chatTypingUsers(typingUsers)
             
             Toggle("Alice is typing", isOn: Binding(
-                get: { typingUsers.contains("alice") },
+                get: { typingUsers.contains(.user("alice")) },
                 set: { isTyping in
                     if isTyping {
-                        typingUsers.insert("alice")
+                        typingUsers.insert(.user("alice"))
                     } else {
-                        typingUsers.remove("alice")
+                        typingUsers.remove(.user("alice"))
                     }
                 }
             ))

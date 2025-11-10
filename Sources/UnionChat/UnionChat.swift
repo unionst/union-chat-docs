@@ -363,7 +363,7 @@ extension View {
         self
     }
     
-    nonisolated public func chatTypingUsers<S>(_ users: S) -> some View where S: Collection, S.Element: StringProtocol {
+    nonisolated public func chatTypingUsers<S>(_ users: S) -> some View where S: Collection, S.Element == ChatRole {
         self
     }
     
@@ -698,7 +698,7 @@ extension ScrollToBottomButton: Sendable {
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor
 public struct TypingIndicatorDots: View {
-    nonisolated public init(users: [String]) { }
+    nonisolated public init<S>(users: S) where S: Collection, S.Element == ChatRole { }
     
     @MainActor public var body: some View {
         EmptyView()
