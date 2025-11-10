@@ -41,7 +41,6 @@ struct ExampleMessage: ChatMessage {
 @available(iOS 17.0, macOS 14.0, *)
 struct FullFeaturedChatExample: View {
     @State private var text = ""
-    @State private var position = ChatPosition.automatic
     @State private var isTyping = true
     
     private let messages: [ExampleMessage] = [
@@ -93,7 +92,7 @@ struct FullFeaturedChatExample: View {
     ]
     
     var body: some View {
-        Chat(position: $position) {
+        Chat {
             Divider(date: Date().addingTimeInterval(-7200))
             
             ForEach(messages) { message in
@@ -132,15 +131,6 @@ struct FullFeaturedChatExample: View {
         .chatGrouping(.byDay)
         .chatMessageSpacing(8)
         .chatAutoscroll(.whenAtBottom)
-        .chatHeader {
-            ChatHeader(
-                title: "Alice",
-                avatar: Image(systemName: "person.circle.fill"),
-                action: {
-                    print("Header tapped")
-                }
-            )
-        }
         .chatInputPlaceholder("Message Alice...")
         .chatInputCapabilities([.camera, .photoLibrary])
         .onChatSend { text, media in
@@ -156,7 +146,6 @@ struct FullFeaturedChatExample: View {
         .chatControls {
             ScrollToBottomButton()
         }
-        .chatScrollPosition($position)
     }
     
     private func sendMessage() {

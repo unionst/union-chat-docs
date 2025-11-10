@@ -360,19 +360,11 @@ extension View {
         self
     }
     
-    nonisolated public func chatHeader<Header: View>(@ViewBuilder _ header: () -> Header) -> some View {
-        self
-    }
-    
     nonisolated public func chatBackground<BG: View>(@ViewBuilder _ background: () -> BG) -> some View {
         self
     }
     
     nonisolated public func chatControls<Controls: View>(@ViewBuilder _ controls: () -> Controls) -> some View {
-        self
-    }
-    
-    nonisolated public func chatScrollPosition(_ position: Binding<ChatPosition>) -> some View {
         self
     }
     
@@ -440,8 +432,6 @@ extension ChatContent {
 @MainActor @preconcurrency
 public struct Chat<Content: ChatContent>: View {
     nonisolated public init(@ChatContentBuilder _ content: () -> Content) { }
-    
-    nonisolated public init(position: Binding<ChatPosition>, @ChatContentBuilder _ content: () -> Content) { }
     
     @MainActor @preconcurrency public var body: some View {
         EmptyView()
@@ -760,31 +750,6 @@ public struct AvatarView: View {
 @available(iOS 17.0, macOS 14.0, *)
 extension AvatarView: Sendable {
 }
-
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor
-public struct ChatHeader: View {
-    public let title: String
-    public let avatar: Image?
-    public let avatarURL: URL?
-    public let action: (() -> Void)?
-    
-    nonisolated public init(title: String, avatar: Image? = nil, avatarURL: URL? = nil, action: (() -> Void)? = nil) {
-        self.title = title
-        self.avatar = avatar
-        self.avatarURL = avatarURL
-        self.action = action
-    }
-    
-    @MainActor public var body: some View {
-        EmptyView()
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension ChatHeader: Sendable {
-}
-
 
 @available(iOS 17.0, macOS 14.0, *)
 extension ForEach: ChatContent where Content: ChatContent {
