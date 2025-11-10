@@ -92,7 +92,7 @@ extension ChatMessage {
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public protocol ChatContent: View {
+public protocol ChatContent {
     associatedtype Body: ChatContent
     @ChatContentBuilder @MainActor @preconcurrency var body: Body { get }
 }
@@ -629,13 +629,13 @@ extension Event: Sendable {
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct Label<Content>: ChatContent where Content: View {
+public struct Banner<Content>: ChatContent where Content: View {
     nonisolated public init(@ViewBuilder content: () -> Content) { }
     public typealias Body = Never
 }
 
 @available(iOS 17.0, macOS 14.0, *)
-extension Label: Sendable {
+extension Banner: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -719,7 +719,9 @@ extension TypingIndicatorDots: Sendable {
 
 @available(iOS 17.0, macOS 14.0, *)
 public struct Avatar: Hashable, Sendable {
-    nonisolated public static func initials(_ text: String? = nil, background: Color? = nil) -> Avatar {
+    public static var initials: Avatar { Avatar() }
+    
+    nonisolated public static func initials(_ text: String, background: Color? = nil) -> Avatar {
         Avatar()
     }
     

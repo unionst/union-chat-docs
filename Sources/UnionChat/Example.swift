@@ -371,7 +371,7 @@ struct CustomContentExample: View {
                 Message(message)
             }
             
-            Label {
+            Banner {
                 HStack {
                     Image(systemName: "moon.zzz.fill")
                         .foregroundStyle(.purple)
@@ -537,51 +537,6 @@ struct MediaTypesExample: View {
     
     var body: some View {
         Chat(messages)
-    }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-struct EnhancedProxyExample: View {
-    @State private var messages: [ExampleMessage] = []
-    @State private var hoveredMessageID: UUID?
-    
-    var body: some View {
-        ChatReader { proxy in
-            ZStack(alignment: .topTrailing) {
-        Chat {
-            ForEach(messages) { message in
-                Message(message)
-            }
-        }
-                .chatGesture { proxy in
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            if let id = proxy.messageID(at: value.location) {
-                                hoveredMessageID = id as? UUID
-                            }
-                        }
-                }
-                
-                VStack(alignment: .trailing, spacing: 8) {
-                    Text("Content: \(Int(proxy.contentSize.height))pt")
-                    Text("Visible: \(proxy.visibleMessageIDs.count)")
-                    
-                    if let hoveredMessageID {
-                        Text("Hover: \(hoveredMessageID.uuidString.prefix(8))")
-                    }
-                    
-                    Button("Scroll to Top") {
-                        proxy.scroll(to: .top, animated: true)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .font(.caption)
-                .padding(8)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding()
-            }
-        }
     }
 }
 
@@ -771,10 +726,6 @@ struct MessageStyleExample: View {
     }
 }
 
-#Preview("Enhanced Proxy") {
-    EnhancedProxyExample()
-}
-
 @available(iOS 17.0, macOS 14.0, *)
 struct CleanSyntaxExample: View {
     @State private var messages: [ExampleMessage] = [
@@ -886,7 +837,7 @@ struct AutoAvatarExample: View {
             Text("1-on-1 (no avatars)").font(.caption).padding(.top)
             
             Chat(twoPersonMessages) { message in
-                Message(message, avatar: .initials()) {
+                Message(message, avatar: .initials) {
                     Text(message.text)
                 }
             }
@@ -897,7 +848,7 @@ struct AutoAvatarExample: View {
             Text("Group (auto avatars)").font(.caption)
             
             Chat(groupMessages) { message in
-                Message(message, avatar: .initials()) {
+                Message(message, avatar: .initials) {
                     Text(message.text)
                 }
             }
@@ -908,7 +859,7 @@ struct AutoAvatarExample: View {
             Text("Force visible").font(.caption)
             
             Chat(twoPersonMessages) { message in
-                Message(message, avatar: .initials()) {
+                Message(message, avatar: .initials) {
                     Text(message.text)
                 }
             }
