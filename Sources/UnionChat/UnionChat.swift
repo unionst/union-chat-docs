@@ -367,6 +367,10 @@ extension View {
         self
     }
     
+    nonisolated public func chatScrollBouncesDisabled(_ disabled: Bool = true) -> some View {
+        self
+    }
+    
     nonisolated public func onChatEdge(_ edge: Edge = .top, perform action: @escaping () async -> Void) -> some View {
         self
     }
