@@ -439,27 +439,10 @@ extension Chat: Sendable {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension Chat {
-    nonisolated public init<Data: RandomAccessCollection>(
-        _ data: Data,
-        @ChatContentBuilder content: @escaping (Data.Element) -> some ChatContent
-    ) { }
-    
     nonisolated public init<M: ChatMessage>(
-        _ data: some RandomAccessCollection<M>,
+        _ messages: some RandomAccessCollection<M>,
         @ChatContentBuilder content: @escaping (M) -> some ChatContent
     ) { }
-    
-    nonisolated public init<Data: RandomAccessCollection>(
-        _ data: Data,
-        id: KeyPath<Data.Element, some Hashable>,
-        role: KeyPath<Data.Element, ChatRole>,
-        time: KeyPath<Data.Element, Date>,
-        kind: KeyPath<Data.Element, MessageKind>,
-        state: KeyPath<Data.Element, DeliveryState>,
-        @ChatContentBuilder content: @escaping (Data.Element) -> some ChatContent
-    ) { }
-    
-    nonisolated public init<M: ChatMessage>(_ messages: [M]) { }
     
     nonisolated public init<M: ChatMessage>(_ messages: some RandomAccessCollection<M>) { }
 }
