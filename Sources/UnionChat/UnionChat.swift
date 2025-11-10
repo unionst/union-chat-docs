@@ -359,6 +359,14 @@ extension View {
         self
     }
     
+    nonisolated public func chatEmptyState<Content>(@ViewBuilder content: () -> Content) -> some View where Content: View {
+        self
+    }
+    
+    nonisolated public func chatTypingUsers<S>(_ users: S) -> some View where S: Collection, S.Element: StringProtocol {
+        self
+    }
+    
     nonisolated public func onChatEdge(_ edge: Edge = .top, perform action: @escaping () async -> Void) -> some View {
         self
     }
@@ -569,17 +577,6 @@ public struct AnyMessageStyle: MessageStyle {
     public func makeBody(configuration: MessageStyleConfiguration) -> some View {
         EmptyView()
     }
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor @preconcurrency
-public struct Typing: ChatContent {
-    nonisolated public init(users: [String]) { }
-    public typealias Body = Never
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension Typing: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)

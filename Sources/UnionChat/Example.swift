@@ -114,12 +114,9 @@ struct FullFeaturedChatExample: View {
             }
             
             Divider(date: Date().addingTimeInterval(-900))
-            
-            if isTyping {
-                Typing(users: ["Alice"])
-            }
         }
         .chatStyle(.bubble)
+        .chatTypingUsers(isTyping ? ["Alice"] : [])
         .tint(.blue)
         .chatMessageSpacing(8)
         .chatAutoscroll(.whenAtBottom)
@@ -390,6 +387,66 @@ struct CustomContentExample: View {
 
 #Preview("Chat Styles") {
     ChatStylesExample()
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+struct EmptyStateExample: View {
+    @State private var messages: [ExampleMessage] = []
+    
+    var body: some View {
+        Chat(messages)
+            .chatEmptyState {
+                ContentUnavailableView(
+                    "No Messages",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("Send a message to start the conversation")
+                )
+            }
+            .onChatSend { text, media in
+                messages.append(ExampleMessage(
+                    id: UUID(),
+                    role: .me,
+                    text: text,
+                    media: media
+                ))
+            }
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+struct TypingIndicatorExample: View {
+    @State private var messages: [ExampleMessage] = [
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Hey!"),
+        ExampleMessage(id: UUID(), role: .me, text: "What's up?")
+    ]
+    @State private var typingUsers: Set<String> = ["alice"]
+    
+    var body: some View {
+        VStack {
+            Chat(messages)
+                .chatTypingUsers(typingUsers)
+            
+            Toggle("Alice is typing", isOn: Binding(
+                get: { typingUsers.contains("alice") },
+                set: { isTyping in
+                    if isTyping {
+                        typingUsers.insert("alice")
+                    } else {
+                        typingUsers.remove("alice")
+                    }
+                }
+            ))
+            .padding()
+        }
+    }
+}
+
+#Preview("Empty State") {
+    EmptyStateExample()
+}
+
+#Preview("Typing Indicator") {
+    TypingIndicatorExample()
 }
 
 #Preview("Custom Content") {
