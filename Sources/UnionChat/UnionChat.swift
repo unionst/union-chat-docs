@@ -182,6 +182,12 @@ extension AnyChatContent: Sendable {
 
 
 @available(iOS 17.0, macOS 14.0, *)
+public struct ChatStyle: Hashable, Sendable {
+    public static var bubble: ChatStyle { ChatStyle() }
+    public static var plain: ChatStyle { ChatStyle() }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
 public struct ChatBubbleShape: Shape {
     public enum TailPosition: Sendable {
         case bottomLeft
@@ -251,11 +257,6 @@ public struct ChatInteractionModes: OptionSet, Sendable {
     public static let all: ChatInteractionModes = [.reply, .edit, .delete, .react, .forward]
 }
 
-@available(iOS 17.0, macOS 14.0, *)
-public enum ChatGrouping: Sendable, Equatable {
-    case none
-    case byDay
-}
 
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -266,11 +267,6 @@ extension EnvironmentValues {
     }
     
     public var chatInteractions: ChatInteractionModes {
-        get { fatalError() }
-        set { }
-    }
-    
-    public var chatGrouping: ChatGrouping {
         get { fatalError() }
         set { }
     }
@@ -332,11 +328,7 @@ extension View {
 
 @available(iOS 17.0, macOS 14.0, *)
 extension View {
-    nonisolated public func chatSentMessageStyle<S>(_ style: S) -> some View where S: ShapeStyle {
-        self
-    }
-    
-    nonisolated public func chatReceivedMessageStyle<S>(_ style: S) -> some View where S: ShapeStyle {
+    nonisolated public func chatStyle(_ style: ChatStyle) -> some View {
         self
     }
     
@@ -349,10 +341,6 @@ extension View {
     }
     
     nonisolated public func chatInteractions(_ modes: ChatInteractionModes) -> some View {
-        self
-    }
-    
-    nonisolated public func chatGrouping(_ strategy: ChatGrouping) -> some View {
         self
     }
     
@@ -629,7 +617,25 @@ public struct Event<Content>: ChatContent where Content: View {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
+extension Event where Content == Text {
+    nonisolated public init(_ titleKey: LocalizedStringKey, time: Date) { }
+    nonisolated public init(_ titleResource: LocalizedStringResource, time: Date) { }
+    nonisolated public init<S>(_ title: S, time: Date) where S: StringProtocol { }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
 extension Event: Sendable {
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+@MainActor @preconcurrency
+public struct Label<Content>: ChatContent where Content: View {
+    nonisolated public init(@ViewBuilder content: () -> Content) { }
+    public typealias Body = Never
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+extension Label: Sendable {
 }
 
 @available(iOS 17.0, macOS 14.0, *)

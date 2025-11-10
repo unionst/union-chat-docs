@@ -97,15 +97,7 @@ struct FullFeaturedChatExample: View {
             
             ForEach(messages) { message in
                 if message.kind == .event {
-                    Event(time: message.timestamp) {
-                        Text(message.text)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(.quaternary)
-                            .clipShape(Capsule())
-                    }
+                    Event(message.text, time: message.timestamp)
                 } else {
                     Message(message) {
                         Text(message.text)
@@ -127,8 +119,8 @@ struct FullFeaturedChatExample: View {
                 Typing(users: ["Alice"])
             }
         }
+        .chatStyle(.bubble)
         .tint(.blue)
-        .chatGrouping(.byDay)
         .chatMessageSpacing(8)
         .chatAutoscroll(.whenAtBottom)
         .chatInputPlaceholder("Message Alice...")
@@ -292,33 +284,34 @@ struct MultiRoleExample: View {
 @available(iOS 17.0, macOS 14.0, *)
 struct BubbleStylingExample: View {
     @State private var messages: [ExampleMessage] = [
-        ExampleMessage(id: UUID(), role: .user("alice"), text: "Default gray gradient"),
-        ExampleMessage(id: UUID(), role: .me, text: "Default uses app tint with gradient")
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "My messages use gray gradient"),
+        ExampleMessage(id: UUID(), role: .me, text: "Your messages use app tint")
     ]
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Default (with gradient)").font(.caption)
+            Text("Default (uses .tint)").font(.caption)
             Chat(messages)
                 .tint(.blue)
                 .frame(height: 200)
             
             Divider()
             
-            Text("Custom solid colors").font(.caption)
+            Text("Custom per-user colors").font(.caption)
             Chat(messages)
-                .chatSentMessageStyle(.purple)
-                .chatReceivedMessageStyle(.gray)
+                .tint(.purple)
+                .chatMessageStyle(.orange.gradient, for: .user("alice"))
                 .frame(height: 200)
             
             Divider()
             
             Text("Custom gradients").font(.caption)
             Chat(messages)
-                .chatSentMessageStyle(
-                    LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .chatMessageStyle(
+                    LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    for: .me
                 )
-                .chatReceivedMessageStyle(.gray.gradient)
+                .chatMessageStyle(.gray.gradient, for: .user("alice"))
                 .frame(height: 200)
         }
     }
@@ -337,6 +330,70 @@ struct ChatControlsExample: View {
                 ScrollToBottomButton()
             }
     }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+struct ChatStylesExample: View {
+    @State private var messages: [ExampleMessage] = [
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Hey! What's up?"),
+        ExampleMessage(id: UUID(), role: .me, text: "Not much, working on the chat SDK!"),
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Cool! Can't wait to try it")
+    ]
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Bubble Style (iMessage)").font(.caption)
+            Chat(messages)
+                .chatStyle(.bubble)
+                .tint(.blue)
+                .frame(height: 250)
+            
+            Divider()
+            
+            Text("Plain Style (Slack/Discord)").font(.caption)
+            Chat(messages)
+                .chatStyle(.plain)
+                .frame(height: 250)
+        }
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+struct CustomContentExample: View {
+    @State private var messages: [ExampleMessage] = [
+        ExampleMessage(id: UUID(), role: .user("alice"), text: "Are you available?"),
+        ExampleMessage(id: UUID(), role: .me, text: "Not right now")
+    ]
+    
+    var body: some View {
+        Chat {
+            ForEach(messages) { message in
+                Message(message)
+            }
+            
+            Label {
+                HStack {
+                    Image(systemName: "moon.zzz.fill")
+                        .foregroundStyle(.purple)
+                    Text("Alice is on Do Not Disturb")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.quaternary)
+                .clipShape(Capsule())
+            }
+        }
+    }
+}
+
+#Preview("Chat Styles") {
+    ChatStylesExample()
+}
+
+#Preview("Custom Content") {
+    CustomContentExample()
 }
 
 #Preview("Bubble Styling") {
