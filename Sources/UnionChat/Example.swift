@@ -93,7 +93,12 @@ struct FullFeaturedChatExample: View {
     
     var body: some View {
         Chat {
-            Divider(date: Date().addingTimeInterval(-7200))
+            Banner {
+                Text(Date().addingTimeInterval(-7200), style: .date)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 8)
+            }
             
             ForEach(messages) { message in
                 if message.kind == .event {
@@ -113,7 +118,12 @@ struct FullFeaturedChatExample: View {
                 }
             }
             
-            Divider(date: Date().addingTimeInterval(-900))
+            Banner {
+                Text(Date().addingTimeInterval(-900), style: .date)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 8)
+            }
         }
         .chatStyle(.bubble)
         .chatTypingUsers(isTyping ? [.user("alice")] : [])
@@ -424,7 +434,7 @@ struct TypingIndicatorExample: View {
     var body: some View {
         VStack {
             Chat(messages)
-                .chatTypingUsers(typingUsers)
+                .chatTypingUsers(typingUsers)\
             
             Toggle("Alice is typing", isOn: Binding(
                 get: { typingUsers.contains(.user("alice")) },

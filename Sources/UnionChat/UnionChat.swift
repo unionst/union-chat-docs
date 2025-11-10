@@ -592,17 +592,6 @@ extension Loading: Sendable {
 
 @available(iOS 17.0, macOS 14.0, *)
 @MainActor @preconcurrency
-public struct Divider: ChatContent {
-    nonisolated public init(date: Date) { }
-    public typealias Body = Never
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-extension Divider: Sendable {
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@MainActor @preconcurrency
 public struct Event<Content>: ChatContent where Content: View {
     nonisolated public init(time: Date, @ViewBuilder content: () -> Content) { }
     public typealias Body = Never
