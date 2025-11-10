@@ -863,7 +863,8 @@ struct AutoAvatarExample: View {
                     Text(message.text)
                 }
             }
-            .chatAvatarVisibility(.visible)
+            .chatAvatarVisibility(.visible, for: .user("alice"))
+            .chatAvatarVisibility(.visible, for: .me)
             .frame(height: 200)
         }
     }
