@@ -260,6 +260,13 @@ public struct ChatInteractionModes: OptionSet, Sendable {
 
 
 @available(iOS 17.0, macOS 14.0, *)
+public struct ChatAvatarVisibility: Hashable, Sendable {
+    public static var automatic: ChatAvatarVisibility { ChatAvatarVisibility() }
+    public static var visible: ChatAvatarVisibility { ChatAvatarVisibility() }
+    public static var hidden: ChatAvatarVisibility { ChatAvatarVisibility() }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
 extension EnvironmentValues {
     public var chatAutoscroll: ChatAutoscroll {
         get { fatalError() }
@@ -278,11 +285,6 @@ extension EnvironmentValues {
     
     public var messageStyle: AnyMessageStyle {
         get { AnyMessageStyle(BubbleMessageStyle()) }
-        set { }
-    }
-    
-    public var avatarVisibility: Visibility {
-        get { .automatic }
         set { }
     }
 }
@@ -360,7 +362,7 @@ extension View {
         self
     }
     
-    nonisolated public func chatAvatarVisibility(_ visibility: Visibility) -> some View {
+    nonisolated public func chatAvatarVisibility(_ visibility: ChatAvatarVisibility) -> some View {
         self
     }
     
